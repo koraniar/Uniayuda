@@ -1,0 +1,173 @@
+﻿@model Uniayuda.Models.UnconfirmedEmailViewModel
+
+@{
+    ViewBag.Title = "Unconfirmed Email";
+}
+
+<h2>Unconfirmed Email</h2>
+
+@if (Model.Email != "" && Model.Email != null)
+{
+    <h5>Hello @Model.UserName</h5>
+    <p>We send you an email to <strong id="current-email">@Model.Email</strong> for confirm your account.</p>
+    <p>If you not receive the email after 5 minutes, please check your spam folder of you email.</p>
+    <p>or you can resend it by clicking <a href="javascript:resendEmail()">here</a>.</p>
+    <br />
+    <p>If this is not your email, click <a href="javascript:changeEmail()">here</a> to change it.</p>
+}
+else
+{
+    <p>We send you an <strong>email</strong> for confirm your account.</p>
+    <p>If you not receive the email after 5 minutes, please check your spam folder of you email.</p>
+    <br />
+    <p>For change your email or resend confirmation, click <a href="javascript:goToLogin()">here</a>.</p>
+}
+
+@using (Html.BeginForm("ResendConfirmationEmail", "Account", FormMethod.Post, new { id = "resendEmail-Form" }))
+{
+    @Html.AntiForgeryToken()
+}
+
+@section Scripts{
+    <script>
+        var correctEmail = "";
+        function goToLogin() {
+            var url = "@Url.Action("Login","Account")";
+            window.location.href = url;
+        }
+
+        function changeEmail() {
+            $.ajax({
+                type: "GET",
+                data: { email: correctEmail },
+                url: "@Url.Action("ChangeEmail", "Account")",
+                success: function (data) {
+                    var title = "Change email";
+                    var message = data;
+                    var footer = '<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>' +
+                        '<button type="button" id="changeEmailAction" class="btn btn-primary">Change</button>';
+                    showModal(title, message, footer);
+
+                    $("#changeEmailAction").on('click', function () {
+                        $("#ChangeEmail-Form").submit();
+                    });
+
+                    $("#ChangeEmail-Form").submit(function (e) {
+                        e.preventDefault();
+                        var EmailForm = $('#ChangeEmail-Form');
+                        if (EmailForm.valid()) {
+                            correctEmail = $("#RepeatEmail").val();
+                            $.ajax({
+                                url: EmailForm.attr('action'),
+                                type: "POST",
+                                data: EmailForm.serialize(),
+                                success: function (data) {
+                                    var title = "Email resended";
+                                    var message = data.Message;
+                                    var footer = '<button type="button" class="btn btn-primary" data-dismiss="modal">Accept</button>';
+
+                                    switch (data.ResponseStatus.toString()) {
+                                        case "@Entities.Enums.ResponseStatus.Success.GetHashCode()":
+                                            $("#current-email").text(correctEmail);
+                                            break;
+                                        case "@Entities.Enums.ResponseStatus.Warning.GetHashCode()":
+                                            title = "Error";
+                                            footer = '<button type="button" id="retryChangeEmail" class="btn btn-primary">Retry</button>';
+                                            break;
+                                        case "@Entities.Enums.ResponseStatus.Error.GetHashCode()":
+                                            title = "Error";
+                                            message = "Unexpected error, " + data.Message;
+                                            footer = '<button type="button" id="reloadPage" class="btn btn-primary" data-dismiss="modal">Reload</button>';
+                                            break;
+                                    }
+
+                                    showModal(title, message, footer);
+                                    $("#reloadPage").click(function () {
+                                        location.reload();
+                                    });
+                                    $("#retryChangeEmail").click(function () {
+                                        changeEmail();
+                                    });
+                                },
+                                error: function (data) {
+                                    console.log("send change Error");
+                                    console.log(data);
+                                    showModal("Error", "Unexpected error.", '<button type="button" id="reloadPage" class="btn btn-primary" data-dismiss="modal">Reload</button>');
+                                    $("#reloadPage").click(function () {
+                                        location.reload();
+                                    });
+                                }
+                            });
+                        }
+                    });
+                },
+                error: function (data) {
+                    console.log("change email Error");
+                    console.log(data);
+                    showModal("Error", "Unexpected error.", '<button type="button" id="reloadPage" class="btn btn-primary" data-dismiss="modal">Reload</button>');
+                    $("#reloadPage").click(function () {
+                        location.reload();
+                    });
+                }
+            });
+        }
+
+        function resendEmail() {
+            //showModal("Resend email", , footer);
+            var form = $("#resendEmail-Form");
+            $.ajax({
+                type: "POST",
+                url: form.attr('action'),
+                data: form.serialize(),
+                success: function (data) {
+                    var title = "Resend email";
+                    var message = data.Message;
+                    var footer = '<button type="button" class="btn btn-primary" data-dismiss="modal">Accept</button>';
+
+                    switch (data.ResponseStatus.toString()) {
+                        case "@Entities.Enums.ResponseStatus.Warning.GetHashCode()":
+                            title = "Error";
+                            break;
+                        case "@Entities.Enums.ResponseStatus.Error.GetHashCode()":
+                            title = "Error";
+                            message = "Unexpected error, " + data.Message;
+                            footer = '<button type="button" id="reloadPage" class="btn btn-primary" data-dismiss="modal">Reload</button>';
+                            break;
+                    }
+
+                    showModal(title, message, footer);
+                    $("#reloadPage").click(function () {
+                        location.reload();
+                    });
+                },
+                error: function (data) {
+                    console.log("resend Error");
+                    console.log(data);
+                    showModal("Error", "Unexpected error.", '<button type="button" id="reloadPage" class="btn btn-primary" data-dismiss="modal">Reload</button>');
+                    $("#reloadPage").click(function () {
+                        location.reload();
+                    });
+                }
+            });
+        }
+
+        (function () {
+            var message = "@Model.errorMessage";
+            var footer = '<button type="button" class="btn btn-primary" data-dismiss="modal">Accept</button>';
+            var showInfoModal = true;
+            switch ("@Model.errorCode") {
+                case "@Entities.Enums.ResponseStatus.None.GetHashCode()":
+                case "@Entities.Enums.ResponseStatus.Success.GetHashCode()":
+                    showInfoModal = false;
+                    break;
+                default:
+            }
+            if (showInfoModal) {
+                showModal("Error", message, footer);
+                $("#reloadPage").click(function () {
+                    location.reload();
+                });
+            }
+        })();
+    </script>
+}

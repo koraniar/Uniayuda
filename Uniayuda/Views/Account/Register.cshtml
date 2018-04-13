@@ -1,0 +1,113 @@
+﻿@model Uniayuda.Models.RegisterViewModel
+
+@{
+    ViewBag.Title = "Register";
+}
+
+<h2>Register</h2>
+@using (Html.BeginForm("SaveRegister", "Account", FormMethod.Post, new { @id = "Register-form" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="form-horizontal">
+        <h4>User</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Email, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", @placeholder = "Email" } })
+                @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.UserName, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.UserName, new { htmlAttributes = new { @class = "form-control", @placeholder = "Username" } })
+                @Html.ValidationMessageFor(model => model.UserName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Password, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "Password" })
+                @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.RepeatPassword, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.PasswordFor(model => model.RepeatPassword, new { @class = "form-control", @placeholder = "Password" })
+                @Html.ValidationMessageFor(model => model.RepeatPassword, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Create Account" class="btn btn-default" />
+        </div>
+    </div>
+}
+
+@section Scripts{
+    <script type="text/javascript">
+        (function () {
+            $("#Register-form").on("submit", function (e) {
+                e.preventDefault();
+                var form = $("#Register-form");
+                if (form.valid()) {
+                    $.ajax({
+                        type: "POST",
+                        url: form.attr('action'),
+                        data: form.serialize(),
+                        success: function (data) {
+                            var message = data.Message;
+                            var footer = '<button type="button" class="btn btn-primary" data-dismiss="modal">Accept</button>';
+                            var showInfoModal = true;
+                            switch (data.ResponseStatus.toString()) {
+                                case "@Entities.Enums.ResponseStatus.Success.GetHashCode()":
+                                    showInfoModal = false;
+                                    var url = "@Url.Action("Index","Account")";
+                                    window.location.href = url;
+                                    break;
+                                case "@Entities.Enums.ResponseStatus.Warning.GetHashCode()":
+                                    if (data.Error == "EMAIL") {
+                                        footer = '<button type="button" class="btn btn-secondary" data-dismiss="modal">Retry</button >' +
+                                            '<button type="button" id="goToLoginPage" class="btn btn-primary">Login</button>';
+                                    }
+                                    break;
+                                case "@Entities.Enums.ResponseStatus.Error.GetHashCode()":
+                                    message = "Unexpected error, " + data.Message;
+                                    footer = '<button type="button" id="reloadRegister" class="btn btn-primary" data-dismiss="modal">Reload</button>';
+                                    break;
+                                default:
+                            }
+                            if (showInfoModal) {
+                                showModal("Error", message, footer);
+                                $("#reloadRegister").click(function () {
+                                    location.reload();
+                                });
+                                $("#goToLoginPage").click(function () {
+                                    var url = "@Url.Action("Login","Account")";
+                                    window.location.href = url;
+                                });
+                            }
+                        },
+                        error: function (data) {
+                            console.log("Register Error");
+                            console.log(data);
+                            showModal("Error", "Unexpected error.", '<button type="button" id="reloadRegister" class="btn btn-primary" data-dismiss="modal">Reload</button>');
+                            $("#reloadRegister").click(function () {
+                                location.reload();
+                            });
+                        }
+                    });
+                }
+            });
+        })();
+    </script>
+}

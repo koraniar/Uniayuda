@@ -1,0 +1,11 @@
+language: csharp
+solution: Uniayuda.sln
+sudo: required 
+mono: latest
+dotnet: 1.1.5
+dist: trusty
+install:
+  - nuget restore Uniayuda.sln
+notifications:
+  email: false
+  slack: norak:Oklwm5dpPrY11mc2SbaTxYn5
