@@ -1,4 +1,9 @@
-# AMemoryForEver [![Build Status](https://travis-ci.com/koraniar/AMemoryForEver.svg?token=dnApQBYtEywqfpGbjCxa&branch=master)](https://travis-ci.com/koraniar/AMemoryForEver)
-**A project to be rich**
+# Uniayuda
 
-### A product of Norak Technology :)
+### Diseño de Procesos - Unipanamericana 4 semestre
+
+**Responsables**
+- Esteban Garcia
+- Daniel Montaña
+- Oscar Castillo
+- Sebastian Solano
