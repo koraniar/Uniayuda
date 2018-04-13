@@ -8,4 +8,3 @@ install:
   - nuget restore Uniayuda.sln
 notifications:
   email: false
-  slack: norak:Oklwm5dpPrY11mc2SbaTxYn5
