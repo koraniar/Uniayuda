@@ -1,4 +1,4 @@
-# Uniayuda [![Build Status](https://travis-ci.org/koraniar/Uniayuda.svg?branch=master)](https://travis-ci.org/koraniar/Uniayuda)
+# Uniayuda
 
 ### Diseño de Procesos - Unipanamericana 4 semestre
 
