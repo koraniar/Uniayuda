@@ -1,17 +1,17 @@
-﻿using System.Data.Entity;
-using Entities.Entities;
+﻿using Cross;
+using Entities.DatabaseEntities;
 using Microsoft.AspNet.Identity.EntityFramework;
+using System.Data.Entity;
 using System.Threading.Tasks;
-using Cross;
 
 namespace Data.DBInteractions
 {
     public class DatabaseContext : IdentityDbContext<User>
     {
-        public DbSet<Country> Country { get; set; }
-        public DbSet<Photo> Photo { get; set; }
-        public DbSet<Profession> Profession { get; set; }
-        public DbSet<Purchase> Purchase { get; set; }
+        public DbSet<Post> Post { get; set; }
+        public DbSet<Assessment> Assessment { get; set; }
+        public DbSet<Comment> Comment { get; set; }
+        public DbSet<History> History { get; set; }
 
         public DatabaseContext() : base(Constants.DefaultConnectionString)
         {

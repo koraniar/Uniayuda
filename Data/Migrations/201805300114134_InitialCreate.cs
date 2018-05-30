@@ -8,13 +8,52 @@ namespace Data.Migrations
         public override void Up()
         {
             CreateTable(
-                "dbo.Countries",
+                "dbo.Assessments",
                 c => new
                     {
                         Id = c.Guid(nullable: false),
-                        Name = c.String(),
+                        Level = c.Int(nullable: false),
+                        CreatedDate = c.DateTime(nullable: false),
+                        UserId = c.String(maxLength: 128),
+                        PostId = c.Guid(nullable: false),
                     })
-                .PrimaryKey(t => t.Id);
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.Posts", t => t.PostId, cascadeDelete: true)
+                .ForeignKey("dbo.AspNetUsers", t => t.UserId)
+                .Index(t => t.UserId)
+                .Index(t => t.PostId);
+            
+            CreateTable(
+                "dbo.Posts",
+                c => new
+                    {
+                        Id = c.Guid(nullable: false),
+                        Url = c.String(),
+                        Comment = c.String(),
+                        CreatedDate = c.DateTime(nullable: false),
+                        EditedDate = c.DateTime(),
+                        UserId = c.String(maxLength: 128),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.AspNetUsers", t => t.UserId)
+                .Index(t => t.UserId);
+            
+            CreateTable(
+                "dbo.Comments",
+                c => new
+                    {
+                        Id = c.Guid(nullable: false),
+                        Value = c.String(),
+                        CreatedDate = c.DateTime(nullable: false),
+                        EditedDate = c.DateTime(),
+                        UserId = c.String(maxLength: 128),
+                        PostId = c.Guid(nullable: false),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.Posts", t => t.PostId, cascadeDelete: true)
+                .ForeignKey("dbo.AspNetUsers", t => t.UserId)
+                .Index(t => t.UserId)
+                .Index(t => t.PostId);
             
             CreateTable(
                 "dbo.AspNetUsers",
@@ -23,14 +62,9 @@ namespace Data.Migrations
                         Id = c.String(nullable: false, maxLength: 128),
                         Name = c.String(),
                         LastName = c.String(),
-                        Pleasures = c.String(),
-                        Sentence = c.String(),
-                        PersonalLink = c.String(),
                         BornDate = c.DateTime(),
                         LastEmailResended = c.DateTime(),
                         LastTimePasswordRestored = c.DateTime(),
-                        ProfessionId = c.Guid(nullable: false),
-                        CountryId = c.Guid(nullable: false),
                         Email = c.String(maxLength: 256),
                         EmailConfirmed = c.Boolean(nullable: false),
                         PasswordHash = c.String(),
@@ -44,10 +78,6 @@ namespace Data.Migrations
                         UserName = c.String(nullable: false, maxLength: 256),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.Countries", t => t.CountryId, cascadeDelete: true)
-                .ForeignKey("dbo.Professions", t => t.ProfessionId, cascadeDelete: true)
-                .Index(t => t.ProfessionId)
-                .Index(t => t.CountryId)
                 .Index(t => t.UserName, unique: true, name: "UserNameIndex");
             
             CreateTable(
@@ -64,6 +94,21 @@ namespace Data.Migrations
                 .Index(t => t.UserId);
             
             CreateTable(
+                "dbo.History",
+                c => new
+                    {
+                        Id = c.Guid(nullable: false),
+                        Date = c.DateTime(nullable: false),
+                        UserId = c.String(maxLength: 128),
+                        PostId = c.Guid(nullable: false),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.Posts", t => t.PostId, cascadeDelete: true)
+                .ForeignKey("dbo.AspNetUsers", t => t.UserId)
+                .Index(t => t.UserId)
+                .Index(t => t.PostId);
+            
+            CreateTable(
                 "dbo.AspNetUserLogins",
                 c => new
                     {
@@ -73,45 +118,6 @@ namespace Data.Migrations
                     })
                 .PrimaryKey(t => new { t.LoginProvider, t.ProviderKey, t.UserId })
                 .ForeignKey("dbo.AspNetUsers", t => t.UserId, cascadeDelete: true)
-                .Index(t => t.UserId);
-            
-            CreateTable(
-                "dbo.Photos",
-                c => new
-                    {
-                        Id = c.Guid(nullable: false),
-                        Format = c.Int(nullable: false),
-                        Path = c.String(),
-                        CreatedDate = c.DateTime(nullable: false),
-                        Active = c.Boolean(nullable: false),
-                        UserId = c.String(maxLength: 128),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.AspNetUsers", t => t.UserId)
-                .Index(t => t.UserId);
-            
-            CreateTable(
-                "dbo.Professions",
-                c => new
-                    {
-                        Id = c.Guid(nullable: false),
-                        Name = c.String(),
-                    })
-                .PrimaryKey(t => t.Id);
-            
-            CreateTable(
-                "dbo.Purchases",
-                c => new
-                    {
-                        Id = c.Guid(nullable: false),
-                        Value = c.Double(nullable: false),
-                        CreatedDate = c.DateTime(nullable: false),
-                        FinishDate = c.DateTime(),
-                        State = c.Int(nullable: false),
-                        UserId = c.String(maxLength: 128),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.AspNetUsers", t => t.UserId)
                 .Index(t => t.UserId);
             
             CreateTable(
@@ -143,31 +149,37 @@ namespace Data.Migrations
         {
             DropForeignKey("dbo.AspNetUserRoles", "RoleId", "dbo.AspNetRoles");
             DropForeignKey("dbo.AspNetUserRoles", "UserId", "dbo.AspNetUsers");
-            DropForeignKey("dbo.Purchases", "UserId", "dbo.AspNetUsers");
-            DropForeignKey("dbo.AspNetUsers", "ProfessionId", "dbo.Professions");
-            DropForeignKey("dbo.Photos", "UserId", "dbo.AspNetUsers");
+            DropForeignKey("dbo.Posts", "UserId", "dbo.AspNetUsers");
             DropForeignKey("dbo.AspNetUserLogins", "UserId", "dbo.AspNetUsers");
-            DropForeignKey("dbo.AspNetUsers", "CountryId", "dbo.Countries");
+            DropForeignKey("dbo.History", "UserId", "dbo.AspNetUsers");
+            DropForeignKey("dbo.History", "PostId", "dbo.Posts");
+            DropForeignKey("dbo.Comments", "UserId", "dbo.AspNetUsers");
+            DropForeignKey("dbo.Assessments", "UserId", "dbo.AspNetUsers");
             DropForeignKey("dbo.AspNetUserClaims", "UserId", "dbo.AspNetUsers");
+            DropForeignKey("dbo.Comments", "PostId", "dbo.Posts");
+            DropForeignKey("dbo.Assessments", "PostId", "dbo.Posts");
             DropIndex("dbo.AspNetRoles", "RoleNameIndex");
             DropIndex("dbo.AspNetUserRoles", new[] { "RoleId" });
             DropIndex("dbo.AspNetUserRoles", new[] { "UserId" });
-            DropIndex("dbo.Purchases", new[] { "UserId" });
-            DropIndex("dbo.Photos", new[] { "UserId" });
             DropIndex("dbo.AspNetUserLogins", new[] { "UserId" });
+            DropIndex("dbo.History", new[] { "PostId" });
+            DropIndex("dbo.History", new[] { "UserId" });
             DropIndex("dbo.AspNetUserClaims", new[] { "UserId" });
             DropIndex("dbo.AspNetUsers", "UserNameIndex");
-            DropIndex("dbo.AspNetUsers", new[] { "CountryId" });
-            DropIndex("dbo.AspNetUsers", new[] { "ProfessionId" });
+            DropIndex("dbo.Comments", new[] { "PostId" });
+            DropIndex("dbo.Comments", new[] { "UserId" });
+            DropIndex("dbo.Posts", new[] { "UserId" });
+            DropIndex("dbo.Assessments", new[] { "PostId" });
+            DropIndex("dbo.Assessments", new[] { "UserId" });
             DropTable("dbo.AspNetRoles");
             DropTable("dbo.AspNetUserRoles");
-            DropTable("dbo.Purchases");
-            DropTable("dbo.Professions");
-            DropTable("dbo.Photos");
             DropTable("dbo.AspNetUserLogins");
+            DropTable("dbo.History");
             DropTable("dbo.AspNetUserClaims");
             DropTable("dbo.AspNetUsers");
-            DropTable("dbo.Countries");
+            DropTable("dbo.Comments");
+            DropTable("dbo.Posts");
+            DropTable("dbo.Assessments");
         }
     }
 }

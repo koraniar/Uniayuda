@@ -147,9 +147,9 @@
     <Compile Include="DBInteractions\IDBFactory.cs" />
     <Compile Include="DBInteractions\IUnitOfWork.cs" />
     <Compile Include="DBInteractions\UnitOfWork.cs" />
-    <Compile Include="Migrations\201803200006048_InitialCreate.cs" />
-    <Compile Include="Migrations\201803200006048_InitialCreate.Designer.cs">
-      <DependentUpon>201803200006048_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\201805300114134_InitialCreate.cs" />
+    <Compile Include="Migrations\201805300114134_InitialCreate.Designer.cs">
+      <DependentUpon>201805300114134_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -175,8 +175,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201803200006048_InitialCreate.resx">
-      <DependentUpon>201803200006048_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201805300114134_InitialCreate.resx">
+      <DependentUpon>201805300114134_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

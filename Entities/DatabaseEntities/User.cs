@@ -2,29 +2,26 @@
 using System;
 using System.Collections.Generic;
 
-namespace Entities.Entities
+namespace Entities.DatabaseEntities
 {
     public class User : IdentityUser
     {
         public string Name { get; set; }
         public string LastName { get; set; }
-        public string Pleasures { get; set; }
-        public string Sentence { get; set; }
-        public string PersonalLink { get; set; }
         public DateTime? BornDate { get; set; }
         public DateTime? LastEmailResended { get; set; }
         public DateTime? LastTimePasswordRestored { get; set; }
-        public Guid ProfessionId { get; set; }
-        public virtual Profession Profession { get; set; }
-        public Guid CountryId { get; set; }
-        public virtual Country Country { get; set; }
-        public virtual IList<Purchase> Purchases { get; set; }
-        public virtual IList<Photo> Photos { get; set; }
+        public virtual List<Assessment> GivenAssessments { get; set; }
+        public virtual List<Comment> GivenComments { get; set; }
+        public virtual List<Post> Posts { get; set; }
+        public virtual List<History> History { get; set; }
 
         public User() {
             Id = Guid.NewGuid().ToString();
-            Purchases = new List<Purchase>();
-            Photos = new List<Photo>();
+            GivenAssessments = new List<Assessment>();
+            GivenComments = new List<Comment>();
+            Posts = new List<Post>();
+            History = new List<History>();
         }
     }
 }

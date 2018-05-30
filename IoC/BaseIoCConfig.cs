@@ -26,9 +26,6 @@ namespace IoC
             //Services
             builder.RegisterType<DatabaseService>().As<IDatabaseService>();
             builder.RegisterType<UserService>().As<IUserService>();
-            builder.RegisterType<CountryService>().As<ICountryService>();
-            builder.RegisterType<ProfessionService>().As<IProfessionService>();
-            builder.RegisterType<PhotoService>().As<IPhotoService>();
 
             return builder;
         }

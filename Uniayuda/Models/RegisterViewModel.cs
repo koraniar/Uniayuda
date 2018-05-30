@@ -5,10 +5,6 @@ namespace Uniayuda.Models
 {
     public class RegisterViewModel
     {
-        [Required(ErrorMessage = "The username is required")]
-        [Display(Name = "Username")]
-        [StringLength(30, ErrorMessage = "The username cannot contain more than {1} characters")]
-        public string UserName { get; set; }
         [Required(ErrorMessage = "The email is required")]
         [Display(Name = "Email")]
         [EmailAddress(ErrorMessage = "Please enter a valid email address")]

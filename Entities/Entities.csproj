@@ -113,15 +113,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DatabaseEntities\Assessment.cs" />
+    <Compile Include="DatabaseEntities\Comment.cs" />
+    <Compile Include="DatabaseEntities\History.cs" />
+    <Compile Include="DatabaseEntities\Post.cs" />
+    <Compile Include="Enums\AssessmentLevel.cs" />
     <Compile Include="ModelEntities\EmailMessage.cs" />
-    <Compile Include="DatabaseEntities\Photo.cs" />
-    <Compile Include="DatabaseEntities\Profession.cs" />
-    <Compile Include="DatabaseEntities\Country.cs" />
-    <Compile Include="DatabaseEntities\Purchase.cs" />
     <Compile Include="DatabaseEntities\User.cs" />
     <Compile Include="ModelEntities\UserSessionData.cs" />
-    <Compile Include="Enums\PhotoFormatType.cs" />
-    <Compile Include="Enums\PurchaseStatus.cs" />
     <Compile Include="Enums\ResponseStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

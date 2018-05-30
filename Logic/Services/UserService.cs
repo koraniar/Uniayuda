@@ -1,6 +1,6 @@
 ﻿using Data.DBInteractions;
 using Data.Repositories.Interfaces;
-using Entities.Entities;
+using Entities.DatabaseEntities;
 using Logic.Interfaces;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin.Security.DataProtection;

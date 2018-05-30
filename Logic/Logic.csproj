@@ -113,18 +113,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Interfaces\ICountryService.cs" />
     <Compile Include="Interfaces\IDatabaseInitializer.cs" />
     <Compile Include="Interfaces\IDatabaseService.cs" />
-    <Compile Include="Interfaces\IPhotoService.cs" />
-    <Compile Include="Interfaces\IProfessionService.cs" />
     <Compile Include="Interfaces\IUserService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\CountryService.cs" />
     <Compile Include="Services\DatabaseInitializer.cs" />
     <Compile Include="Services\DatabaseService.cs" />
-    <Compile Include="Services\PhotoService.cs" />
-    <Compile Include="Services\ProfessionService.cs" />
     <Compile Include="Services\UserService.cs" />
   </ItemGroup>
   <ItemGroup>

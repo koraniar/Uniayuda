@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Cross;
+using Entities.DatabaseEntities;
 using Entities.Entities;
 using Logic.Interfaces;
 using System.Web;

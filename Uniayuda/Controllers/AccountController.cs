@@ -1,20 +1,18 @@
-﻿using Uniayuda.Infraestructure;
-using Uniayuda.Models;
-using Autofac;
-using Entities.Entities;
+﻿using Autofac;
+using Entities.DatabaseEntities;
 using Entities.Enums;
 using Logic.Interfaces;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.DataProtection;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using Uniayuda.Infraestructure;
+using Uniayuda.Models;
 
 namespace Uniayuda.Controllers
 {
@@ -22,9 +20,6 @@ namespace Uniayuda.Controllers
     public class AccountController : Controller
     {
         private readonly IUserService _userService;
-        private readonly ICountryService _countryService;
-        private readonly IProfessionService _professionService;
-        private readonly IPhotoService _photoService;
         private readonly IDatabaseService _databaseService;
 
         private IAuthenticationManager AuthenticationManager
@@ -32,72 +27,45 @@ namespace Uniayuda.Controllers
             get { return HttpContext.GetOwinContext().Authentication; }
         }
 
-        public AccountController(IUserService userService, ICountryService countryService, IProfessionService professionService, IPhotoService photoService,
-            IDatabaseService databaseService)
+        public AccountController(IUserService userService, IDatabaseService databaseService)
         {
             _userService = userService;
-            _countryService = countryService;
-            _professionService = professionService;
-            _photoService = photoService;
             _databaseService = databaseService;
         }
 
         public async Task<ActionResult> Index()
         {
             var userSD = SessionData.GetUserSessionData();
-            string userId = userSD?.UserId;
-            if (userSD != null && userSD.EmailConfirmed == false)
+            string userId = SessionData.GetUserSessionData()?.UserId;
+            if (userSD != null && string.IsNullOrEmpty(userSD.Name))
             {
-                return RedirectToAction("UnconfirmedEmail");
+                return RedirectToAction("Profile", "Account", new { fromDashboard = true });
             }
 
             User user = string.IsNullOrEmpty(userId) ? null : await _userService.GetUserByIdAsync(userId);
             if (user != null)
             {
-                List<Country> CountriesList = (await _countryService.GetAllCountriesAsync()).ToList();
-                List<Profession> ProfessionsList = (await _professionService.GetAllProfessionsAsync()).ToList();
-
                 ProfileViewModel model = AutoMapperConfiguration._mapper.Map<ProfileViewModel>(user);
 
-                foreach (var item in CountriesList)
-                {
-                    model.Countries.Add(new SelectListItem() { Text = item.Name, Value = item.Id.ToString() });
-                }
-                foreach (var item in ProfessionsList)
-                {
-                    model.Professions.Add(new SelectListItem() { Text = item.Name, Value = item.Id.ToString() });
-                }
                 return View(model);
             }
             return RedirectToAction("Login", "Account");
         }
 
-        public new async Task<ActionResult> Profile()
+        public new async Task<ActionResult> Profile(bool fromDashboard = false)
         {
-            var userSD = SessionData.GetUserSessionData();
-            string userId = userSD?.UserId;
-
-            if (userSD != null && userSD.EmailConfirmed == false)
-            {
-                return RedirectToAction("UnconfirmedEmail");
-            }
+            //var userSD = SessionData.GetUserSessionData();
+            string userId = SessionData.GetUserSessionData()?.UserId;
+            //if (userSD != null && userSD.EmailConfirmed == false)
+            //{
+            //    return RedirectToAction("UnconfirmedEmail");
+            //}
 
             User user = string.IsNullOrEmpty(userId) ? null : await _userService.GetUserByIdAsync(userId);
             if (user != null)
             {
                 ProfileViewModel model = AutoMapperConfiguration._mapper.Map<ProfileViewModel>(user);
-
-                List<Country> CountriesList = (await _countryService.GetAllCountriesAsync()).ToList();
-                List<Profession> ProfessionsList = (await _professionService.GetAllProfessionsAsync()).ToList();
-                foreach (Country item in CountriesList)
-                {
-                    model.Countries.Add(new SelectListItem() { Text = item.Name, Value = item.Id.ToString() });
-                }
-                foreach (Profession item in ProfessionsList)
-                {
-                    model.Professions.Add(new SelectListItem() { Text = item.Name, Value = item.Id.ToString() });
-                }
-
+                model.IsFromDashboard = fromDashboard;
                 return View(model);
             }
             return RedirectToAction("Login", "Account");
@@ -107,47 +75,38 @@ namespace Uniayuda.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> EditSaveProfile(ProfileViewModel model)
         {
-            User user = await _userService.GetUserByIdAsync(SessionData.GetUserSessionData().UserId);
-            if (user != null)
+            if (ModelState.IsValid)
             {
-                AutoMapperConfiguration._mapper.Map(model, user);
-
-                if (model.URLPhoto != null && (!user.Photos.Any(x => x.Active) || model.URLPhoto != user.Photos.FirstOrDefault(x => x.Active).Path))
+                User user = await _userService.GetUserByIdAsync(SessionData.GetUserSessionData().UserId);
+                if (user != null)
                 {
-                    foreach (Photo item in user.Photos.Where(x => x.Active))
+                    AutoMapperConfiguration._mapper.Map(model, user);
+
+                    bool result = await _userService.UpdateUserAsync(user);
+                    result = result ? await _databaseService.CommitAsync() : false;
+
+                    if (result)
                     {
-                        item.Active = false;
-                        _photoService.UpdatePhoto(item);
+                        if (model.IsFromDashboard)
+                        {
+                            SessionData.GetAndRestoreUserSessionData();
+                            return RedirectToAction("Index", "Dashboard");
+                        }
+                        return RedirectToAction("Index");
                     }
-
-                    Photo photo = new Photo()
-                    {
-                        Id = Guid.NewGuid(),
-                        Format = PhotoFormatType.Image,
-                        Path = model.URLPhoto,
-                        Active = true,
-                        CreatedDate = DateTime.Now,
-                        UserId = user.Id
-                    };
-                    _photoService.CreatePhoto(photo);
                 }
-
-                bool result = await _databaseService.CommitAsync();
-
-                if (result)
-                {
-                    return RedirectToAction("Index");
-                }
+                return RedirectToAction("Login", "Account");
             }
-            return RedirectToAction("Index");
+            return RedirectToAction("Profile", "Account", new { fromDashboard = true });
         }
 
+        #region Register
         [AllowAnonymous]
         public ActionResult Register()
         {
             if (User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", "Dashboard");
             }
             return View(new RegisterViewModel());
         }
@@ -164,43 +123,36 @@ namespace Uniayuda.Controllers
                     if (model.Password.Length < Cross.Constants.passwordMinimumLength)
                     {
                         Response.StatusCode = (int)HttpStatusCode.OK;
-                        return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "PASSWORD", Message = "The password must be contains at least 8 characters." }, JsonRequestBehavior.AllowGet);
+                        return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "PASSWORD", Message = $"La contraseña debe contener minimo {Cross.Constants.passwordMinimumLength} caracteres." }, JsonRequestBehavior.AllowGet);
                     }
 
-
-                    User existentUser = await _userService.GetUserByEmailAsync(model.Email);
-                    if (existentUser != null)
+                    if (await _userService.GetUserByEmailAsync(model.Email) != null)
                     {
                         Response.StatusCode = (int)HttpStatusCode.OK;
-                        return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "EMAIL", Message = "This email is already registered." }, JsonRequestBehavior.AllowGet);
-                    }
-
-                    existentUser = await _userService.GetUserByUsernameAsync(model.UserName);
-                    if (existentUser != null)
-                    {
-                        Response.StatusCode = (int)HttpStatusCode.OK;
-                        return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "USERNAME", Message = "This username is already taken." }, JsonRequestBehavior.AllowGet);
+                        return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "EMAIL", Message = "Este correo ya esta registrado." }, JsonRequestBehavior.AllowGet);
                     }
 
                     User user = AutoMapperConfiguration._mapper.Map<User>(model);
 
-                    var result = await _userService.RegisterAsync(user, model.Password, IoCConfig.ApplicationContainer.Container.Resolve<IDataProtectionProvider>());
-                    if (result)
+                    if (await _userService.RegisterAsync(user, model.Password, IoCConfig.ApplicationContainer.Container.Resolve<IDataProtectionProvider>()))
                     {
                         await SignInAsync(user, true);
                         Response.StatusCode = (int)HttpStatusCode.OK;
                         return Json(new { ResponseStatus = ResponseStatus.Success, Error = "", Message = "." }, JsonRequestBehavior.AllowGet);
                     }
+
                     Response.StatusCode = (int)HttpStatusCode.OK;
-                    return Json(new { ResponseStatus = ResponseStatus.Error, Error = "VALID", Message = "Please try again later." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { ResponseStatus = ResponseStatus.Error, Error = "VALID", Message = "Por favor intente de nuevo mas tarde." }, JsonRequestBehavior.AllowGet);
                 }
                 Response.StatusCode = (int)HttpStatusCode.OK;
-                return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "PASSWORD", Message = "The passwords does not match." }, JsonRequestBehavior.AllowGet);
+                return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "PASSWORD", Message = "Las contraseñas no coinciden." }, JsonRequestBehavior.AllowGet);
             }
             Response.StatusCode = (int)HttpStatusCode.OK;
-            return Json(new { ResponseStatus = ResponseStatus.Error, Error = "VALID", Message = "Please validate entered data." }, JsonRequestBehavior.AllowGet);
+            return Json(new { ResponseStatus = ResponseStatus.Error, Error = "VALID", Message = "Por favor valide los datos ingresados." }, JsonRequestBehavior.AllowGet);
         }
+        #endregion
 
+        #region EmailConfirmation
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ResendConfirmationEmail()
@@ -250,8 +202,8 @@ namespace Uniayuda.Controllers
                         {
                             if (Request.IsAuthenticated)
                             {
-                                var userData = SessionData.GetAndRestoreUserSessionData();
-                                return RedirectToAction("Index");
+                                SessionData.GetAndRestoreUserSessionData();
+                                return RedirectToAction("Index", "Dashboard");
                             }
                             else
                             {
@@ -282,7 +234,7 @@ namespace Uniayuda.Controllers
                 {
                     if (userSD.EmailConfirmed)
                     {
-                        return RedirectToAction("Index");
+                        return RedirectToAction("Index", "Dashboard");
                     }
                     model.Email = userSD.EmailAddress;
                     model.UserName = userSD.UserName;
@@ -290,7 +242,9 @@ namespace Uniayuda.Controllers
             }
             return View(model);
         }
+        #endregion
 
+        #region ChangeEmailPassword
         [HttpGet]
         public ActionResult ChangeEmail(string email)
         {
@@ -340,6 +294,17 @@ namespace Uniayuda.Controllers
             return Json(new { ResponseStatus = ResponseStatus.Error, Error = "VALID", Message = "Please validate entered data." }, JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult Settings()
+        {
+            //var userSD = SessionData.GetUserSessionData();
+            //if (userSD != null && userSD.EmailConfirmed == false)
+            //{
+            //    return RedirectToAction("UnconfirmedEmail");
+            //}
+
+            return View();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ChangePassWord(ChangePasswordViewModel model)
@@ -367,7 +332,9 @@ namespace Uniayuda.Controllers
             Response.StatusCode = (int)HttpStatusCode.OK;
             return Json(new { ResponseStatus = ResponseStatus.Error, Error = "VALID", Message = "Please validate entered data." }, JsonRequestBehavior.AllowGet);
         }
+        #endregion
 
+        #region RestorePassword
         [HttpGet]
         [AllowAnonymous]
         public ActionResult ShowResetPassword()
@@ -382,15 +349,7 @@ namespace Uniayuda.Controllers
         {
             if (ModelState.IsValid)
             {
-                User user = null;
-                if (model.EmailOrUsername.Contains("@"))
-                {
-                    user = await _userService.GetUserByEmailAsync(model.EmailOrUsername.Trim());
-                }
-                else
-                {
-                    user = await _userService.GetUserByUsernameAsync(model.EmailOrUsername);
-                }
+                User user = await _userService.GetUserByEmailAsync(model.EmailOrUsername.Trim());
 
                 if (user != null)
                 {
@@ -415,7 +374,7 @@ namespace Uniayuda.Controllers
         {
             if (User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", "Dashboard");
             }
 
             User user = string.IsNullOrEmpty(Id) ? null : await _userService.GetUserByIdAsync(Id);
@@ -454,26 +413,15 @@ namespace Uniayuda.Controllers
             Response.StatusCode = (int)HttpStatusCode.OK;
             return Json(new { ResponseStatus = ResponseStatus.Error, Error = "VALID", Message = "Please validate entered data." }, JsonRequestBehavior.AllowGet);
         }
+        #endregion
 
-        public ActionResult Settings()
-        {
-            var userSD = SessionData.GetUserSessionData();
-
-            if (userSD != null && userSD.EmailConfirmed == false)
-            {
-                return RedirectToAction("UnconfirmedEmail");
-            }
-
-            return View();
-        }
-
-        #region Login
+        #region LoginLogout
         [AllowAnonymous]
         public ActionResult Login(ResponseStatus status = ResponseStatus.None, string message = "")
         {
             if (User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", "Dashboard");
             }
             return View(new LoginViewModel() { statusCode = status.GetHashCode(), statusMessage = message });
         }
@@ -486,44 +434,28 @@ namespace Uniayuda.Controllers
             if (ModelState.IsValid)
             {
                 User user = null;
-                if (model.UsernameEmail.Contains("@"))
+                User fakeUser = await _userService.GetUserByEmailAsync(model.UsernameEmail.Trim());
+                if (fakeUser != null)
                 {
-                    User fakeUser = await _userService.GetUserByEmailAsync(model.UsernameEmail.Trim());
-                    if (fakeUser != null)
-                    {
-                        user = await _userService.GetUserByCredentialsAsync(fakeUser.UserName, model.Password);
-                    }
-                    else
-                    {
-                        Response.StatusCode = (int)HttpStatusCode.OK;
-                        return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "ACCOUNT", Message = "This account does not exist." }, JsonRequestBehavior.AllowGet);
-                    }
+                    user = await _userService.GetUserByCredentialsAsync(fakeUser.UserName, model.Password);
                 }
                 else
                 {
-                    User fakeUser = await _userService.GetUserByUsernameAsync(model.UsernameEmail);
-                    if (fakeUser != null)
-                    {
-                        user = await _userService.GetUserByCredentialsAsync(model.UsernameEmail, model.Password);
-                    }
-                    else
-                    {
-                        Response.StatusCode = (int)HttpStatusCode.OK;
-                        return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "ACCOUNT", Message = "This account does not exist." }, JsonRequestBehavior.AllowGet);
-                    }
+                    Response.StatusCode = (int)HttpStatusCode.OK;
+                    return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "ACCOUNT", Message = "La combinación de correo y contraseña no es válida." }, JsonRequestBehavior.AllowGet);
                 }
 
                 if (user != null)
                 {
                     await SignInAsync(user, true);
                     Response.StatusCode = (int)HttpStatusCode.OK;
-                    return Json(new { ResponseStatus = ResponseStatus.Success, Error = "", Message = "Logged In." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { ResponseStatus = ResponseStatus.Success, Error = "", Message = "Entrando." }, JsonRequestBehavior.AllowGet);
                 }
                 Response.StatusCode = (int)HttpStatusCode.OK;
-                return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "CREDENTIALS", Message = "The combination of email and password is not correct." }, JsonRequestBehavior.AllowGet);
+                return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "CREDENTIALS", Message = "La combinación de correo y contraseña no es válida." }, JsonRequestBehavior.AllowGet);
             }
             Response.StatusCode = (int)HttpStatusCode.OK;
-            return Json(new { ResponseStatus = ResponseStatus.Error, Error = "VALID", Message = "Please validate entered data." }, JsonRequestBehavior.AllowGet);
+            return Json(new { ResponseStatus = ResponseStatus.Error, Error = "VALID", Message = "Por favor valide la información que ingreso." }, JsonRequestBehavior.AllowGet);
         }
 
         private async Task SignInAsync(User user, bool isPersistent)

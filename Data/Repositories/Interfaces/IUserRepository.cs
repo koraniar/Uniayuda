@@ -1,4 +1,4 @@
-﻿using Entities.Entities;
+﻿using Entities.DatabaseEntities;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin.Security.DataProtection;
 using System.Collections.Generic;
