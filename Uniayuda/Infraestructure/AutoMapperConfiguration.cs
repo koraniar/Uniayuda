@@ -61,6 +61,19 @@ namespace Uniayuda.Infraestructure
                 .ForMember(x => x.GivenComments, y => y.Ignore())
                 .ForMember(x => x.Posts, y => y.Ignore())
                 .ForMember(x => x.History, y => y.Ignore());
+
+                cfg.CreateMap<Post, PostViewModel>()
+                .ForMember(x => x.IsEdition, y => y.Ignore());
+
+                cfg.CreateMap<PostViewModel, Post>()
+                .ForMember(x => x.Id, y => y.Ignore())
+                .ForMember(x => x.Assessments, y => y.Ignore())
+                .ForMember(x => x.Comments, y => y.Ignore())
+                .ForMember(x => x.CreatedDate, y => y.Ignore())
+                .ForMember(x => x.EditedDate, y => y.Ignore())
+                .ForMember(x => x.History, y => y.Ignore())
+                .ForMember(x => x.User, y => y.Ignore())
+                .ForMember(x => x.UserId, y => y.Ignore());
             });
 
             config.AssertConfigurationIsValid();

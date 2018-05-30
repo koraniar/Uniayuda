@@ -15,6 +15,7 @@ namespace Entities.DatabaseEntities
 
         public Assessment()
         {
+            Id = Guid.NewGuid();
             CreatedDate = DateTime.Now;
         }
     }

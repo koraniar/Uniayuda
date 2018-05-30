@@ -7,7 +7,9 @@ namespace Entities.DatabaseEntities
     {
         public Guid Id { get; set; }
         public string Url { get; set; }
+        public string Title { get; set; }
         public string Comment { get; set; }
+        public bool IsAnonymous { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? EditedDate { get; set; }
         public string UserId { get; set; }
@@ -18,6 +20,7 @@ namespace Entities.DatabaseEntities
 
         public Post()
         {
+            Id = Guid.NewGuid();
             CreatedDate = DateTime.Now;
             Assessments = new List<Assessment>();
             Comments = new List<Comment>();

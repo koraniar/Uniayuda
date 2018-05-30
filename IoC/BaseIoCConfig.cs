@@ -26,6 +26,7 @@ namespace IoC
             //Services
             builder.RegisterType<DatabaseService>().As<IDatabaseService>();
             builder.RegisterType<UserService>().As<IUserService>();
+            builder.RegisterType<PostService>().As<IPostService>();
 
             return builder;
         }

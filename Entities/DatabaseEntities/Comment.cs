@@ -15,6 +15,7 @@ namespace Entities.DatabaseEntities
 
         public Comment()
         {
+            Id = Guid.NewGuid();
             CreatedDate = DateTime.Now;
         }
     }
