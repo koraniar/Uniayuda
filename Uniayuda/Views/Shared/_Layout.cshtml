@@ -30,17 +30,17 @@
     <!--Navbar-->
     <nav class="navbar navbar-default">
         <div class="navbar-header">
-            <a href="@Url.Action("index","Home")" class="navbar-brand">Uniayuda</a>
+            <a href="@Url.Action("index", Request.IsAuthenticated ? "Dashboard" : "Home")" class="navbar-brand">Uniayuda</a>
         </div>
         <div class="collapse navbar-collapse navbar-ex1-collapse">
             <ul class="nav navbar-nav">
-                <li><a href="@Url.Action("index","Home")">Home</a></li>
+                <li><a href="@Url.Action("index", Request.IsAuthenticated ? "Dashboard" : "Home")">Home</a></li>
                 <li><a href="#">FAQ</a></li>
             </ul>
             @if (Request.IsAuthenticated)
             {
                 <ul class="nav navbar-nav navbar-right">
-                    <li><a href="@Url.Action("Index","Account")">@userSessionData.UserName</a></li>
+                    <li><a href="@Url.Action("Index","Account")">@(string.IsNullOrEmpty(userSessionData.Name) ? userSessionData.EmailAddress.Split('@')[0] : userSessionData.Name)</a></li>
                     <li><a href="javascript:document.getElementById('logoutForm').submit()">Logout</a></li>
                 </ul>
             }

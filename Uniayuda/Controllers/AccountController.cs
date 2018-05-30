@@ -81,6 +81,7 @@ namespace Uniayuda.Controllers
                 if (user != null)
                 {
                     AutoMapperConfiguration._mapper.Map(model, user);
+                    user.BornDate = null;//BORN DATE
 
                     bool result = await _userService.UpdateUserAsync(user);
                     result = result ? await _databaseService.CommitAsync() : false;
