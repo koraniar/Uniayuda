@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Cross.Helpers;
 using Entities.DatabaseEntities;
 using Uniayuda.Models;
 
@@ -73,7 +74,8 @@ namespace Uniayuda.Infraestructure
                 .ForMember(x => x.EditedDate, y => y.Ignore())
                 .ForMember(x => x.History, y => y.Ignore())
                 .ForMember(x => x.User, y => y.Ignore())
-                .ForMember(x => x.UserId, y => y.Ignore());
+                .ForMember(x => x.UserId, y => y.Ignore())
+                .ForMember(x => x.Title, y => y.MapFrom(z => TextHelper.CapitalizeEachWord(z.Title)));
             });
 
             config.AssertConfigurationIsValid();

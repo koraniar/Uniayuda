@@ -1,0 +1,105 @@
+﻿@model Uniayuda.Models.PostViewModel
+
+@{
+    ViewBag.Title = "Post";
+}
+
+<div>
+    <hr />
+    <div style="border: 1px solid black; padding: 20px">
+        <h3>@Model.Title</h3>
+        <p>@(Model.EditedDate.HasValue ? "Last Time Edited " + Model.EditedDate : "Created Date " + Model.CreatedDate)</p>
+        @*@Html.DisplayFor(model => model.Url)*@
+        @if (!string.IsNullOrEmpty(Model.Comment))
+        {
+            <p><strong>Description:</strong> @Model.Comment</p>
+        }
+        <div>
+            <span><strong>Assess: </strong></span>
+            <span id="star-1" class="fa fa-star" style="cursor: pointer"></span>
+            <span id="star-2" class="fa fa-star" style="cursor: pointer"></span>
+            <span id="star-3" class="fa fa-star" style="cursor: pointer"></span>
+            <span id="star-4" class="fa fa-star" style="cursor: pointer"></span>
+            <span id="star-5" class="fa fa-star" style="cursor: pointer"></span>
+        </div>
+    </div>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
+
+@section Scripts{
+    <script type="text/javascript">
+        (function () {
+            $("#star-1").on("click", function (e) {
+                $("#star-1").css("color", "orange");
+                $("#star-2").css("color", "");
+                $("#star-3").css("color", "");
+                $("#star-4").css("color", "");
+                $("#star-5").css("color", "");
+                addAssessment(1);
+            });
+            $("#star-2").on("click", function (e) {
+                $("#star-1").css("color", "orange");
+                $("#star-2").css("color", "orange");
+                $("#star-3").css("color", "");
+                $("#star-4").css("color", "");
+                $("#star-5").css("color", "");
+                addAssessment(2);
+            });
+            $("#star-3").on("click", function (e) {
+                $("#star-1").css("color", "orange");
+                $("#star-2").css("color", "orange");
+                $("#star-3").css("color", "orange");
+                $("#star-4").css("color", "");
+                $("#star-5").css("color", "");
+                addAssessment(3);
+            });
+            $("#star-4").on("click", function (e) {
+                $("#star-1").css("color", "orange");
+                $("#star-2").css("color", "orange");
+                $("#star-3").css("color", "orange");
+                $("#star-4").css("color", "orange");
+                $("#star-5").css("color", "");
+                addAssessment(4);
+            });
+            $("#star-5").on("click", function (e) {
+                $("#star-1").css("color", "orange");
+                $("#star-2").css("color", "orange");
+                $("#star-3").css("color", "orange");
+                $("#star-4").css("color", "orange");
+                $("#star-5").css("color", "orange");
+                addAssessment(5);
+            });
+        })();
+
+        function addAssessment(level) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("AddAssessment", "Post")',
+                data: { level: level },
+                success: function (data) {
+                    switch (data.ResponseStatus.toString()) {
+                        case "@Entities.Enums.ResponseStatus.Error.GetHashCode()":
+                            $("#star-1").css("color", "");
+                            $("#star-2").css("color", "");
+                            $("#star-3").css("color", "");
+                            $("#star-4").css("color", "");
+                            $("#star-5").css("color", "");
+                            break;
+                    }
+                },
+                error: function (data) {
+                    console.log("Login Error");
+                    console.log(data);
+                    $("#star-1").css("color", "");
+                    $("#star-2").css("color", "");
+                    $("#star-3").css("color", "");
+                    $("#star-4").css("color", "");
+                    $("#star-5").css("color", "");
+                }
+            });
+        }
+    </script>
+}

@@ -2,17 +2,15 @@
 using Entities.Enums;
 using Logic.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using Uniayuda.Infraestructure;
 using Uniayuda.Models;
 
 namespace Uniayuda.Controllers
 {
+    [Authorize]
     public class PostController : Controller
     {
         private readonly IUserService _userService;
@@ -77,6 +75,34 @@ namespace Uniayuda.Controllers
             }
             Response.StatusCode = (int)HttpStatusCode.OK;
             return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "EMAIL", Message = "Please review the data and try again." }, JsonRequestBehavior.AllowGet);
+        }
+
+        public async Task<ActionResult> Details(Guid postId)
+        {
+            if (!Guid.Empty.Equals(postId))
+            {
+                Post post = await _postService.GetByIdAsync(postId);
+                if (post != null)
+                {
+                    PostViewModel model = AutoMapperConfiguration._mapper.Map<PostViewModel>(post);
+
+                    return View(model);
+                }
+            }
+            return RedirectToAction("Index", "Dashboard");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> AddAssessment(int level)
+        {
+            if (level > 0 && level < 6)
+            {
+                AssessmentLevel finalLevel = (AssessmentLevel)level;
+
+
+            }
+            Response.StatusCode = (int)HttpStatusCode.OK;
+            return Json(new { ResponseStatus = ResponseStatus.Error, Message = "Level not valid." }, JsonRequestBehavior.AllowGet);
         }
     }
 }
