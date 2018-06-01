@@ -64,7 +64,9 @@ namespace Uniayuda.Infraestructure
                 .ForMember(x => x.History, y => y.Ignore());
 
                 cfg.CreateMap<Post, PostViewModel>()
-                .ForMember(x => x.IsEdition, y => y.Ignore());
+                .ForMember(x => x.IsEdition, y => y.Ignore())
+                .ForMember(x => x.AssesmentAverage, y => y.Ignore())
+                .ForMember(x => x.UserAssesment, y => y.Ignore());
 
                 cfg.CreateMap<PostViewModel, Post>()
                 .ForMember(x => x.Id, y => y.Ignore())

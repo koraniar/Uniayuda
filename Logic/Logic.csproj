@@ -113,11 +113,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interfaces\IAssessmentService.cs" />
     <Compile Include="Interfaces\IDatabaseInitializer.cs" />
     <Compile Include="Interfaces\IDatabaseService.cs" />
     <Compile Include="Interfaces\IPostService.cs" />
     <Compile Include="Interfaces\IUserService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\AssessmentService.cs" />
     <Compile Include="Services\DatabaseInitializer.cs" />
     <Compile Include="Services\DatabaseService.cs" />
     <Compile Include="Services\PostService.cs" />

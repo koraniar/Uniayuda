@@ -2,6 +2,8 @@
 using Entities.Enums;
 using Logic.Interfaces;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -15,12 +17,14 @@ namespace Uniayuda.Controllers
     {
         private readonly IUserService _userService;
         private readonly IPostService _postService;
+        private readonly IAssessmentService _assessmentService;
         private readonly IDatabaseService _databaseService;
 
-        public PostController(IPostService postService, IUserService userService, IDatabaseService databaseService)
+        public PostController(IPostService postService, IUserService userService, IAssessmentService assessmentService, IDatabaseService databaseService)
         {
             _postService = postService;
             _databaseService = databaseService;
+            _assessmentService = assessmentService;
             _userService = userService;
         }
 
@@ -49,7 +53,7 @@ namespace Uniayuda.Controllers
                         }
                         AutoMapperConfiguration._mapper.Map(model, post);
                         post.EditedDate = DateTime.Now;
-                        
+
                         _postService.Update(post);
                     }
                     else
@@ -61,7 +65,7 @@ namespace Uniayuda.Controllers
 
                         _postService.Create(post);
                     }
-                    
+
                     if (await _databaseService.CommitAsync())
                     {
                         Response.StatusCode = (int)HttpStatusCode.OK;
@@ -79,12 +83,24 @@ namespace Uniayuda.Controllers
 
         public async Task<ActionResult> Details(Guid postId)
         {
-            if (!Guid.Empty.Equals(postId))
+            User user = await _userService.GetUserByIdAsync(SessionData.GetUserSessionData()?.UserId);
+            if (user != null && !Guid.Empty.Equals(postId))
             {
                 Post post = await _postService.GetByIdAsync(postId);
                 if (post != null)
                 {
+                    int total = 0;
+                    Assessment givenAssessment = await _assessmentService.GetByUserIdAndPostIdAsync(user.Id, post.Id);
+                    IEnumerable<Assessment> assessments = await _assessmentService.GetAllByPostIdAsync(post.Id);
+
+                    foreach (Assessment assessment in assessments)
+                    {
+                        total += assessment.Level.GetHashCode();
+                    }
+
                     PostViewModel model = AutoMapperConfiguration._mapper.Map<PostViewModel>(post);
+                    model.AssesmentAverage = (total / (assessments.Count() == 0 ? 1 : assessments.Count()));
+                    model.UserAssesment = givenAssessment != null ? givenAssessment.Level.GetHashCode() : 0;
 
                     return View(model);
                 }
@@ -93,16 +109,65 @@ namespace Uniayuda.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> AddAssessment(int level)
+        public async Task<ActionResult> AddAssessment(Guid postId, int level)
         {
-            if (level > 0 && level < 6)
+            User user = await _userService.GetUserByIdAsync(SessionData.GetUserSessionData()?.UserId);
+            if (user != null && !Guid.Empty.Equals(postId))
             {
-                AssessmentLevel finalLevel = (AssessmentLevel)level;
+                if (level > 0 && level < 6)
+                {
+                    AssessmentLevel finalLevel = (AssessmentLevel)level;
+
+                    Assessment assessment = await _assessmentService.GetByUserIdAndPostIdAsync(user.Id, postId);
+
+                    if (assessment == null)
+                    {
+                        assessment = new Assessment()
+                        {
+                            UserId = user.Id,
+                            User = user,
+                            PostId = postId,
+                            Level = finalLevel
+                        };
+
+                        _assessmentService.Create(assessment);
+                    }
+                    else
+                    {
+                        assessment.Level = finalLevel;
+
+                        _assessmentService.Update(assessment);
+                    }
+
+                    if (await _databaseService.CommitAsync())
+                    {
+                        int total = 0;
+                        IEnumerable<Assessment> assessments = await _assessmentService.GetAllByPostIdAsync(postId);
+
+                        foreach (Assessment item in assessments)
+                        {
+                            total += item.Level.GetHashCode();
+                        }
+
+                        Response.StatusCode = (int)HttpStatusCode.OK;
+                        return Json(new { ResponseStatus = ResponseStatus.Success, Message = "Ok.", Average = (total / assessments.Count()) }, JsonRequestBehavior.AllowGet);
+                    }
+                    Response.StatusCode = (int)HttpStatusCode.OK;
+                    return Json(new { ResponseStatus = ResponseStatus.Error, Message = "Error saving the assesment." }, JsonRequestBehavior.AllowGet);
+                }
+                Response.StatusCode = (int)HttpStatusCode.OK;
+                return Json(new { ResponseStatus = ResponseStatus.Error, Message = "Level not valid." }, JsonRequestBehavior.AllowGet);
+            }
+            Response.StatusCode = (int)HttpStatusCode.OK;
+            return Json(new { ResponseStatus = ResponseStatus.Error, Message = "User not found." }, JsonRequestBehavior.AllowGet);
+        }
+
+        {
+            {
 
 
             }
             Response.StatusCode = (int)HttpStatusCode.OK;
-            return Json(new { ResponseStatus = ResponseStatus.Error, Message = "Level not valid." }, JsonRequestBehavior.AllowGet);
         }
     }
 }

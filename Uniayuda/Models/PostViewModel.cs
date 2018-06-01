@@ -17,5 +17,7 @@ namespace Uniayuda.Models
         public DateTime CreatedDate { get; set; }
         public DateTime? EditedDate { get; set; }
         public bool IsEdition { get; set; }
+        public double AssesmentAverage { get; set; }
+        public int UserAssesment { get; set; }
     }
 }

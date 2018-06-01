@@ -6,21 +6,24 @@
 
 <div>
     <hr />
-    <div style="border: 1px solid black; padding: 20px">
-        <h3>@Model.Title</h3>
-        <p>@(Model.EditedDate.HasValue ? "Last Time Edited " + Model.EditedDate : "Created Date " + Model.CreatedDate)</p>
-        @*@Html.DisplayFor(model => model.Url)*@
-        @if (!string.IsNullOrEmpty(Model.Comment))
-        {
-            <p><strong>Description:</strong> @Model.Comment</p>
-        }
-        <div>
-            <span><strong>Assess: </strong></span>
-            <span id="star-1" class="fa fa-star" style="cursor: pointer"></span>
-            <span id="star-2" class="fa fa-star" style="cursor: pointer"></span>
-            <span id="star-3" class="fa fa-star" style="cursor: pointer"></span>
-            <span id="star-4" class="fa fa-star" style="cursor: pointer"></span>
-            <span id="star-5" class="fa fa-star" style="cursor: pointer"></span>
+    <div class="row">
+        <div class="col-sm-offset-4 col-sm-4" style="border: 1px solid black; padding: 20px">
+            <h3>@Model.Title</h3>
+            <p>@(Model.EditedDate.HasValue ? "Last Time Edited " + Model.EditedDate : "Created Date " + Model.CreatedDate)</p>
+            @*@Html.DisplayFor(model => model.Url)*@
+            @if (!string.IsNullOrEmpty(Model.Comment))
+            {
+                <p><strong>Description:</strong> @Model.Comment</p>
+            }
+            <div>
+                <span><strong>Valoration: </strong></span>
+                <span id="star-1" class="fa fa-star" style="cursor: pointer"></span>
+                <span id="star-2" class="fa fa-star" style="cursor: pointer"></span>
+                <span id="star-3" class="fa fa-star" style="cursor: pointer"></span>
+                <span id="star-4" class="fa fa-star" style="cursor: pointer"></span>
+                <span id="star-5" class="fa fa-star" style="cursor: pointer"></span>
+                <span id="averageStars"> (@Model.AssesmentAverage)</span>
+            </div>
         </div>
     </div>
 </div>
@@ -32,6 +35,10 @@
 @section Scripts{
     <script type="text/javascript">
         (function () {
+            for (var i = parseInt("@Model.UserAssesment"); i > 0; i--) {
+                $("#star-" + i).css("color", "orange");
+            }
+
             $("#star-1").on("click", function (e) {
                 $("#star-1").css("color", "orange");
                 $("#star-2").css("color", "");
@@ -78,15 +85,19 @@
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("AddAssessment", "Post")',
-                data: { level: level },
+                data: { postId: "@Model.Id", level: level },
                 success: function (data) {
                     switch (data.ResponseStatus.toString()) {
+                        case "@Entities.Enums.ResponseStatus.Success.GetHashCode()":
+                            $("#averageStars").text(" (" + data.Average + ")");
+                            break;
                         case "@Entities.Enums.ResponseStatus.Error.GetHashCode()":
                             $("#star-1").css("color", "");
                             $("#star-2").css("color", "");
                             $("#star-3").css("color", "");
                             $("#star-4").css("color", "");
                             $("#star-5").css("color", "");
+                            console.log(data);
                             break;
                     }
                 },
