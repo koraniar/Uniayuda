@@ -18,13 +18,16 @@ namespace Uniayuda.Controllers
         private readonly IUserService _userService;
         private readonly IPostService _postService;
         private readonly IAssessmentService _assessmentService;
+        private readonly ICommentService _commentService;
         private readonly IDatabaseService _databaseService;
 
-        public PostController(IPostService postService, IUserService userService, IAssessmentService assessmentService, IDatabaseService databaseService)
+        public PostController(IPostService postService, IUserService userService, IAssessmentService assessmentService, ICommentService commentService,
+            IDatabaseService databaseService)
         {
             _postService = postService;
             _databaseService = databaseService;
             _assessmentService = assessmentService;
+            _commentService = commentService;
             _userService = userService;
         }
 
@@ -98,9 +101,12 @@ namespace Uniayuda.Controllers
                         total += assessment.Level.GetHashCode();
                     }
 
+                    IEnumerable<CommentViewModel> comments = AutoMapperConfiguration._mapper.Map<IEnumerable<CommentViewModel>>(await _commentService.GetAllByPostIdAsync(postId));
+
                     PostViewModel model = AutoMapperConfiguration._mapper.Map<PostViewModel>(post);
                     model.AssesmentAverage = (total / (assessments.Count() == 0 ? 1 : assessments.Count()));
                     model.UserAssesment = givenAssessment != null ? givenAssessment.Level.GetHashCode() : 0;
+                    model.Comments = comments.ToList();
 
                     return View(model);
                 }
@@ -162,12 +168,38 @@ namespace Uniayuda.Controllers
             return Json(new { ResponseStatus = ResponseStatus.Error, Message = "User not found." }, JsonRequestBehavior.AllowGet);
         }
 
+        [HttpPost]
+        public async Task<ActionResult> AddComment(Guid postId, string newComment)
         {
+            User user = await _userService.GetUserByIdAsync(SessionData.GetUserSessionData()?.UserId);
+            if (user != null && !Guid.Empty.Equals(postId))
             {
+                if (!string.IsNullOrEmpty(newComment))
+                {
+                    Comment comment = new Comment()
+                    {
+                        PostId = postId,
+                        UserId = user.Id,
+                        User = user,
+                        Value = newComment
+                    };
 
+                    _commentService.Create(comment);
 
+                    if (await _databaseService.CommitAsync())
+                    {
+                        Response.StatusCode = (int)HttpStatusCode.OK;
+                        return Json(new { ResponseStatus = ResponseStatus.Success, Message = "Ok.", Comment = comment.Value,
+                            Name = $"{user.Name} {user.LastName}", Date = comment.CreatedDate }, JsonRequestBehavior.AllowGet);
+                    }
+                    Response.StatusCode = (int)HttpStatusCode.OK;
+                    return Json(new { ResponseStatus = ResponseStatus.Error, Message = "Error saving the assesment." }, JsonRequestBehavior.AllowGet);
+                }
+                Response.StatusCode = (int)HttpStatusCode.OK;
+                return Json(new { ResponseStatus = ResponseStatus.Error, Message = "Level not valid." }, JsonRequestBehavior.AllowGet);
             }
             Response.StatusCode = (int)HttpStatusCode.OK;
+            return Json(new { ResponseStatus = ResponseStatus.Error, Message = "User not found." }, JsonRequestBehavior.AllowGet);
         }
     }
 }

@@ -78,6 +78,9 @@ namespace Uniayuda.Infraestructure
                 .ForMember(x => x.User, y => y.Ignore())
                 .ForMember(x => x.UserId, y => y.Ignore())
                 .ForMember(x => x.Title, y => y.MapFrom(z => TextHelper.CapitalizeEachWord(z.Title)));
+
+                cfg.CreateMap<Comment, CommentViewModel>()
+                .ForMember(x => x.UserName, y => y.MapFrom(z => $"{z.User.Name} {z.User.LastName}"));
             });
 
             config.AssertConfigurationIsValid();

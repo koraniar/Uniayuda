@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Uniayuda.Models
@@ -19,5 +20,11 @@ namespace Uniayuda.Models
         public bool IsEdition { get; set; }
         public double AssesmentAverage { get; set; }
         public int UserAssesment { get; set; }
+        public List<CommentViewModel> Comments { get; set; }
+
+        public PostViewModel()
+        {
+            Comments = new List<CommentViewModel>();
+        }
     }
 }
