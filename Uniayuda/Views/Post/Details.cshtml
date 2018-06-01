@@ -8,9 +8,10 @@
     <hr />
     <div class="row">
         <div class="col-sm-offset-4 col-sm-4" style="border: 1px solid black; padding: 20px;border-radius: 6px 6px 0px 0px">
-            <h3>@Model.Title</h3>
+            <h3 style="margin-top:0px;">@Model.Title</h3>
             <p>@(Model.EditedDate.HasValue ? "Last Time Edited " + Model.EditedDate : "Created Date " + Model.CreatedDate)</p>
             @*@Html.DisplayFor(model => model.Url)*@
+            <p><strong>Author:</strong> @Model.UserAuthor</p>
             @if (!string.IsNullOrEmpty(Model.Comment))
             {
                 <p><strong>Description:</strong> @Model.Comment</p>
@@ -54,7 +55,7 @@
     </div>
 </div>
 <p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Edit", "Index", new { id = Model.Id }) |
     @Html.ActionLink("Back to Dashboard", "Index", "Dashboard")
 </p>
 

@@ -31,8 +31,17 @@ namespace Uniayuda.Controllers
             _userService = userService;
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index(string id = null)
         {
+            if (!string.IsNullOrEmpty(id))
+            {
+                PostViewModel model = AutoMapperConfiguration._mapper.Map<PostViewModel>(await _postService.GetByIdAsync(Guid.Parse(id)));
+                if (model != null)
+                {
+                    model.IsEdition = true;
+                    return View(model);
+                }
+            }
             return View(new PostViewModel());
         }
 
@@ -107,6 +116,7 @@ namespace Uniayuda.Controllers
                     model.AssesmentAverage = (total / (assessments.Count() == 0 ? 1 : assessments.Count()));
                     model.UserAssesment = givenAssessment != null ? givenAssessment.Level.GetHashCode() : 0;
                     model.Comments = comments.ToList();
+                    model.UserAuthor = model.IsAnonymous ? "Anonymous" : $"{user.Name} {user.LastName}";
 
                     return View(model);
                 }

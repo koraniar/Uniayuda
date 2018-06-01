@@ -15,6 +15,7 @@ namespace Uniayuda.Models
         public string Comment { get; set; }
         [Display(Name = "Publish as Anonymous")]
         public bool IsAnonymous { get; set; }
+        public string UserAuthor { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? EditedDate { get; set; }
         public bool IsEdition { get; set; }
