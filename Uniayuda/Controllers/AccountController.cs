@@ -127,6 +127,12 @@ namespace Uniayuda.Controllers
                         return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "PASSWORD", Message = $"La contraseña debe contener minimo {Cross.Constants.passwordMinimumLength} caracteres." }, JsonRequestBehavior.AllowGet);
                     }
 
+                    if (model.Email.Split('@')[1] != "unipanamericana.edu.co")
+                    {
+                        Response.StatusCode = (int)HttpStatusCode.OK;
+                        return Json(new { ResponseStatus = ResponseStatus.Warning, Error = "EMAIL", Message = "Este correo no pertenece a la universidad." }, JsonRequestBehavior.AllowGet);
+                    }
+
                     if (await _userService.GetUserByEmailAsync(model.Email) != null)
                     {
                         Response.StatusCode = (int)HttpStatusCode.OK;

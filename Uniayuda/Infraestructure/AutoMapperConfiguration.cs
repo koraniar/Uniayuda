@@ -36,7 +36,9 @@ namespace Uniayuda.Infraestructure
                 .ForMember(x => x.GivenAssessments, y => y.Ignore())
                 .ForMember(x => x.GivenComments, y => y.Ignore())
                 .ForMember(x => x.Posts, y => y.Ignore())
-                .ForMember(x => x.History, y => y.Ignore());
+                .ForMember(x => x.History, y => y.Ignore())
+                .ForMember(x => x.Name, y => y.MapFrom(z => TextHelper.CapitalizeEachWord(z.Name)))
+                .ForMember(x => x.LastName, y => y.MapFrom(z => TextHelper.CapitalizeEachWord(z.LastName)));
 
                 cfg.CreateMap<RegisterViewModel, User>()
                 .ForMember(x => x.TwoFactorEnabled, y => y.Ignore())

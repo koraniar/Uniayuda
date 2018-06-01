@@ -101,7 +101,7 @@ namespace Uniayuda.Controllers
                 Post post = await _postService.GetByIdAsync(postId);
                 if (post != null)
                 {
-                    int total = 0;
+                    double total = 0;
                     Assessment givenAssessment = await _assessmentService.GetByUserIdAndPostIdAsync(user.Id, post.Id);
                     IEnumerable<Assessment> assessments = await _assessmentService.GetAllByPostIdAsync(post.Id);
 
@@ -113,7 +113,7 @@ namespace Uniayuda.Controllers
                     IEnumerable<CommentViewModel> comments = AutoMapperConfiguration._mapper.Map<IEnumerable<CommentViewModel>>(await _commentService.GetAllByPostIdAsync(postId));
 
                     PostViewModel model = AutoMapperConfiguration._mapper.Map<PostViewModel>(post);
-                    model.AssesmentAverage = (total / (assessments.Count() == 0 ? 1 : assessments.Count()));
+                    model.AssesmentAverage = (total / (assessments.Count() == 0 ? 1d : double.Parse(assessments.Count().ToString())));
                     model.UserAssesment = givenAssessment != null ? givenAssessment.Level.GetHashCode() : 0;
                     model.Comments = comments.ToList();
 
@@ -156,7 +156,7 @@ namespace Uniayuda.Controllers
 
                     if (await _databaseService.CommitAsync())
                     {
-                        int total = 0;
+                        double total = 0;
                         IEnumerable<Assessment> assessments = await _assessmentService.GetAllByPostIdAsync(postId);
 
                         foreach (Assessment item in assessments)
@@ -165,7 +165,7 @@ namespace Uniayuda.Controllers
                         }
 
                         Response.StatusCode = (int)HttpStatusCode.OK;
-                        return Json(new { ResponseStatus = ResponseStatus.Success, Message = "Ok.", Average = (total / assessments.Count()) }, JsonRequestBehavior.AllowGet);
+                        return Json(new { ResponseStatus = ResponseStatus.Success, Message = "Ok.", Average = (total / double.Parse(assessments.Count().ToString())).ToString() }, JsonRequestBehavior.AllowGet);
                     }
                     Response.StatusCode = (int)HttpStatusCode.OK;
                     return Json(new { ResponseStatus = ResponseStatus.Error, Message = "Error saving the assesment." }, JsonRequestBehavior.AllowGet);

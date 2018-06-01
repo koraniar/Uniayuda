@@ -39,7 +39,13 @@ namespace Logic.Services
                 var commit = await _unitOfWork.CommitAsync();
                 if (commit)
                 {
-                    await SendConfirmationEmailAsync(user, provider);
+                    try
+                    {
+                        await SendConfirmationEmailAsync(user, provider);
+                    }
+                    catch
+                    {
+                    }
                 }
                 return commit;
             }

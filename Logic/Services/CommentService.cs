@@ -39,7 +39,7 @@ namespace Logic.Services
 
         public async Task<IEnumerable<Comment>> GetLastCommentsByPostIdAsync(Guid postId, int quantity)
         {
-            return (await _commentRepository.GetManyAsync(k => k.PostId.Equals(postId))).OrderBy(x => x.CreatedDate).Take(quantity);
+            return (await _commentRepository.GetManyAsync(k => k.PostId.Equals(postId))).OrderByDescending(x => x.CreatedDate).Take(quantity);
         }
 
         public async Task<Comment> GetByUserIdAndPostIdAsync(string userId, Guid postId)

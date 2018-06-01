@@ -41,7 +41,7 @@ namespace Uniayuda.Controllers
 
                 foreach (PostViewModel item in model)
                 {
-                    int total = 0;
+                    double total = 0;
                     IEnumerable<Assessment> assessments = await _assessmentService.GetAllByPostIdAsync(item.Id);
 
                     foreach (Assessment assessment in assessments)
@@ -49,8 +49,9 @@ namespace Uniayuda.Controllers
                         total += assessment.Level.GetHashCode();
                     }
 
-                    item.Comments = AutoMapperConfiguration._mapper.Map<List<CommentViewModel>>((await _commentService.GetLastCommentsByPostIdAsync(item.Id, 3)).ToList());
-                    item.AssesmentAverage = (total / (assessments.Count() == 0 ? 1 : assessments.Count()));
+                    item.Comments = AutoMapperConfiguration._mapper.Map<List<CommentViewModel>>((await _commentService.GetLastCommentsByPostIdAsync(item.Id, 3))
+                        .ToList().OrderBy(x => x.CreatedDate));
+                    item.AssesmentAverage = (total / (assessments.Count() == 0 ? 1d : double.Parse(assessments.Count().ToString())));
                 }
 
                 return View(model);
