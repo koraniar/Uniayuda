@@ -1,53 +1,189 @@
 ﻿@model List<Uniayuda.Models.PostViewModel>
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Deshboard";
 }
 
-<h2>Index</h2>
+<h2>Dashboard</h2>
+
+<div style="text-align:center;">
+    <button id="newPost" type="button" class="btn btn-default btn-lg" style="margin:25px auto;">Create Post</button>
+</div>
 
 @foreach (Uniayuda.Models.PostViewModel post in Model)
 {
-<dl class="dl-horizontal">
-    <dt>
-        @Html.DisplayNameFor(x => post.Title)
-    </dt>
+    <div class="row">
+        <div class="col-sm-offset-4 col-sm-4" style="border: 1px solid black; padding: 20px;border-radius: 6px 6px 0px 0px">
+            <h3 style="margin-top:0px;">@Html.ActionLink(post.Title, "Details", "Post", new { postId = post.Id }, null)</h3>
+            <p>@(post.EditedDate.HasValue ? "Last Time Edited " + post.EditedDate : "Created Date " + post.CreatedDate)</p>
+            @*@Html.DisplayFor(model => model.Url)*@
+            <p><strong>Author:</strong> @post.UserAuthor</p>
+            @if (!string.IsNullOrEmpty(post.Comment))
+            {
+                <p><strong>Description:</strong> @post.Comment</p>
+            }
+            <div>
+                <span><strong>Valoration: </strong></span>
+                <span class="fa fa-star star-1" data-post="@post.Id" style="@(post.AssesmentAverage >= 1 ? "color:orange;" : "")"></span>
+                <span class="fa fa-star star-2" data-post="@post.Id" style="@(post.AssesmentAverage >= 2 ? "color:orange;" : "")"></span>
+                <span class="fa fa-star star-3" data-post="@post.Id" style="@(post.AssesmentAverage >= 3 ? "color:orange;" : "")"></span>
+                <span class="fa fa-star star-4" data-post="@post.Id" style="@(post.AssesmentAverage >= 4 ? "color:orange;" : "")"></span>
+                <span class="fa fa-star star-5" data-post="@post.Id" style="@(post.AssesmentAverage >= 5 ? "color:orange;" : "")"></span>
+                <span id="averageStars"> (@post.AssesmentAverage)</span>
+            </div>
+        </div>
+    </div>
+    <div id="oldComments-@post.Id">
+        @foreach (var comment in post.Comments)
+        {
+            <div class="row">
+                <div class="col-sm-offset-4 col-sm-4" style="border: 1px solid black;border-top: 0px;padding: 20px">
+                    <img src="~/Assets/61205.png" alt="userPhoto" height="50" width="50" style="padding:0px" class="col-sm-1" />
+                    <div class="col-sm-11">
+                        <div class="row">
+                            <h4 style="float: left;margin:10px">@comment.UserName</h4>
+                            <p style="margin-top:10px"> - @comment.CreatedDate</p>
+                        </div>
+                        <p>@comment.Value</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="row" style="margin-bottom:30px">
+        <div class="col-sm-offset-4 col-sm-4" style="border: 1px solid #bcbaba;border-top: 0px;padding: 20px;border-radius:0px 0px 6px 6px">
+            <img src="~/Assets/61205.png" alt="userPhoto" height="50" width="50" style="padding:0px" class="col-sm-1" />
+            <div class="col-sm-11">
+                <textarea rows="2" type="text" id="newComment-@post.Id" placeholder="New Comment" class="form-control"></textarea>
+            </div>
+            <button type="button" data-post="@post.Id" class="btn btn-default postComment" style="margin-top:5px;float:right;margin-right:15px">Post</button>
+        </div>
+    </div>
+}
 
-    <dd>
-        @Html.ActionLink(post.Title, "Details", "Post", new { postId = post.Id }, null)
-    </dd>
+@section Scripts{
+    <script type="text/javascript">
+        (function () {
+            $("#newPost").on("click", function (e) {
+                var url = "Post/Index";
+                window.location.href = url;
+            });
 
-    <dt>
-        @Html.DisplayNameFor(x => post.Url)
-    </dt>
+            $(".postComment").on("click", function (e) {
+                var id = $(this).data("post");
+                var comment = $("#newComment-"+id).val();
+                if (comment.length > 0) {
+                    addComment(id, comment);
+                }
+            });
 
-    <dd>
-        @Html.DisplayFor(x => post.Url)
-    </dd>
+            //$(".star-1").on("click", function (e) {
+            //    var id = $(this).data("post");
+            //    $("#star-1").css("color", "orange");
+            //    $("#star-2").css("color", "");
+            //    $("#star-3").css("color", "");
+            //    $("#star-4").css("color", "");
+            //    $("#star-5").css("color", "");
+            //    addAssessment(id, 1);
+            //});
+            //$(".star-2").on("click", function (e) {
+            //    var id = $(this).data("post");
+            //    $("#star-1").css("color", "orange");
+            //    $("#star-2").css("color", "orange");
+            //    $("#star-3").css("color", "");
+            //    $("#star-4").css("color", "");
+            //    $("#star-5").css("color", "");
+            //    addAssessment(id, 2);
+            //});
+            //$(".star-3").on("click", function (e) {
+            //    var id = $(this).data("post");
+            //    $("#star-1").css("color", "orange");
+            //    $("#star-2").css("color", "orange");
+            //    $("#star-3").css("color", "orange");
+            //    $("#star-4").css("color", "");
+            //    $("#star-5").css("color", "");
+            //    addAssessment(id, 3);
+            //});
+            //$(".star-4").on("click", function (e) {
+            //    var id = $(this).data("post");
+            //    $("#star-1").css("color", "orange");
+            //    $("#star-2").css("color", "orange");
+            //    $("#star-3").css("color", "orange");
+            //    $("#star-4").css("color", "orange");
+            //    $("#star-5").css("color", "");
+            //    addAssessment(id, 4);
+            //});
+            //$(".star-5").on("click", function (e) {
+            //    var id = $(this).data("post");
+            //    $("#star-1").css("color", "orange");
+            //    $("#star-2").css("color", "orange");
+            //    $("#star-3").css("color", "orange");
+            //    $("#star-4").css("color", "orange");
+            //    $("#star-5").css("color", "orange");
+            //    addAssessment(id, 5);
+            //});
+        })();
 
-    <dt>
-        @Html.DisplayNameFor(x => post.Comment)
-    </dt>
+        function addComment(id, comment) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("AddComment", "Post")',
+                data: { postId: id, newComment: comment },
+                success: function (data) {
+                    switch (data.ResponseStatus.toString()) {
+                        case "@Entities.Enums.ResponseStatus.Success.GetHashCode()":
+                            var dbComment = '<div class="row"><div class="col-sm-offset-4 col-sm-4" style="border: 1px solid black;border-top: 0px;padding: 20px">' +
+                                '<img src="/Assets/61205.png" alt="userPhoto" height="50" width="50" style="padding:0px" class="col-sm-1" /><div class="col-sm-11"><div class="row">' +
+                                '<h4 style="float: left;margin:10px">' + data.Name + '</h4>' +
+                                '<p style="margin-top:10px"> - ' + data.Date + '</p>' +
+                                '</div>' +
+                                '<p>' + data.Comment + '</p>' +
+                                '</div></div></div>'
+                            $("#oldComments-"+id).append(dbComment);
+                            $("#newComment").val("");
+                            break;
+                        case "@Entities.Enums.ResponseStatus.Error.GetHashCode()":
+                            console.log(data);
+                            break;
+                    }
+                },
+                error: function (data) {
+                    console.log("Dashboard Add comment Error");
+                    console.log(data);
+                }
+            });
+        }
 
-    <dd>
-        @Html.DisplayFor(x => post.Comment)
-    </dd>
-
-    <dt>
-        @Html.DisplayNameFor(x => post.CreatedDate)
-    </dt>
-
-    <dd>
-        @Html.DisplayFor(x => post.CreatedDate)
-    </dd>
-
-    <dt>
-        @Html.DisplayNameFor(x => post.EditedDate)
-    </dt>
-
-    <dd>
-        @Html.DisplayFor(x => post.EditedDate)
-    </dd>
-
-</dl>
+        @*function addAssessment(id, level) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("AddAssessment", "Post")',
+                data: { postId: id, level: level },
+                success: function (data) {
+                    switch (data.ResponseStatus.toString()) {
+                        case "@Entities.Enums.ResponseStatus.Success.GetHashCode()":
+                            $("#averageStars").text(" (" + data.Average + ")");
+                            break;
+                        case "@Entities.Enums.ResponseStatus.Error.GetHashCode()":
+                            $("#star-1").css("color", "");
+                            $("#star-2").css("color", "");
+                            $("#star-3").css("color", "");
+                            $("#star-4").css("color", "");
+                            $("#star-5").css("color", "");
+                            console.log(data);
+                            break;
+                    }
+                },
+                error: function (data) {
+                    console.log("Login Error");
+                    console.log(data);
+                    $("#star-1").css("color", "");
+                    $("#star-2").css("color", "");
+                    $("#star-3").css("color", "");
+                    $("#star-4").css("color", "");
+                    $("#star-5").css("color", "");
+                }
+            });
+        }*@
+    </script>
 }

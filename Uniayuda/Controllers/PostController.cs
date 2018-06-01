@@ -116,7 +116,6 @@ namespace Uniayuda.Controllers
                     model.AssesmentAverage = (total / (assessments.Count() == 0 ? 1 : assessments.Count()));
                     model.UserAssesment = givenAssessment != null ? givenAssessment.Level.GetHashCode() : 0;
                     model.Comments = comments.ToList();
-                    model.UserAuthor = model.IsAnonymous ? "Anonymous" : $"{user.Name} {user.LastName}";
 
                     return View(model);
                 }
@@ -199,8 +198,8 @@ namespace Uniayuda.Controllers
                     if (await _databaseService.CommitAsync())
                     {
                         Response.StatusCode = (int)HttpStatusCode.OK;
-                        return Json(new { ResponseStatus = ResponseStatus.Success, Message = "Ok.", Comment = comment.Value,
-                            Name = $"{user.Name} {user.LastName}", Date = comment.CreatedDate }, JsonRequestBehavior.AllowGet);
+                        return Json(new { ResponseStatus = ResponseStatus.Success, Message = "Ok.", Comment = comment.Value, Name = $"{user.Name} {user.LastName}",
+                            Date = $"{comment.CreatedDate.ToShortDateString()} {comment.CreatedDate.ToShortTimeString()}" }, JsonRequestBehavior.AllowGet);
                     }
                     Response.StatusCode = (int)HttpStatusCode.OK;
                     return Json(new { ResponseStatus = ResponseStatus.Error, Message = "Error saving the assesment." }, JsonRequestBehavior.AllowGet);

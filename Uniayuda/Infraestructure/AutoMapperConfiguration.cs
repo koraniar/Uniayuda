@@ -67,7 +67,7 @@ namespace Uniayuda.Infraestructure
                 .ForMember(x => x.IsEdition, y => y.Ignore())
                 .ForMember(x => x.AssesmentAverage, y => y.Ignore())
                 .ForMember(x => x.UserAssesment, y => y.Ignore())
-                .ForMember(x => x.UserAuthor, y => y.Ignore());
+                .ForMember(x => x.UserAuthor, y => y.MapFrom(z => z.IsAnonymous ? "Anonymous" : $"{z.User.Name} {z.User.LastName}"));
 
                 cfg.CreateMap<PostViewModel, Post>()
                 .ForMember(x => x.Id, y => y.Ignore())

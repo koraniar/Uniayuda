@@ -1,4 +1,5 @@
 ﻿using System.Web.Mvc;
+using Uniayuda.Infraestructure;
 
 namespace Uniayuda.Controllers
 {
@@ -7,6 +8,11 @@ namespace Uniayuda.Controllers
         // GET: Home
         public ActionResult Index()
         {
+            var userSD = SessionData.GetUserSessionData();
+            if (userSD != null)
+            {
+                return RedirectToAction("Index", "Dashboard");
+            }
             return View();
         }
     }

@@ -1,4 +1,5 @@
-﻿using Entities.Entities;
+﻿using Entities.DatabaseEntities;
+using Entities.Entities;
 using Logic.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +14,15 @@ namespace Uniayuda.Controllers
     public class DashboardController : Controller
     {
         private readonly IPostService _postService;
+        private readonly ICommentService _commentService;
+        private readonly IAssessmentService _assessmentService;
         private readonly IDatabaseService _databaseService;
 
-        public DashboardController(IPostService postService, IDatabaseService databaseService)
+        public DashboardController(IPostService postService, ICommentService commentService, IAssessmentService assessmentService, IDatabaseService databaseService)
         {
             _postService = postService;
+            _commentService = commentService;
+            _assessmentService = assessmentService;
             _databaseService = databaseService;
         }
 
@@ -32,7 +37,21 @@ namespace Uniayuda.Controllers
                     return RedirectToAction("Profile", "Account", new { fromDashboard = true });
                 }
 
-                List<PostViewModel> model = AutoMapperConfiguration._mapper.Map<List<PostViewModel>>((await _postService.GetAllAsync()).OrderBy(x => x.CreatedDate));
+                List<PostViewModel> model = AutoMapperConfiguration._mapper.Map<List<PostViewModel>>((await _postService.GetAllAsync()).OrderByDescending(x => x.CreatedDate));
+
+                foreach (PostViewModel item in model)
+                {
+                    int total = 0;
+                    IEnumerable<Assessment> assessments = await _assessmentService.GetAllByPostIdAsync(item.Id);
+
+                    foreach (Assessment assessment in assessments)
+                    {
+                        total += assessment.Level.GetHashCode();
+                    }
+
+                    item.Comments = AutoMapperConfiguration._mapper.Map<List<CommentViewModel>>((await _commentService.GetLastCommentsByPostIdAsync(item.Id, 3)).ToList());
+                    item.AssesmentAverage = (total / (assessments.Count() == 0 ? 1 : assessments.Count()));
+                }
 
                 return View(model);
             }
